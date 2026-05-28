@@ -1,0 +1,6 @@
+services:
+  site-builder:
+    build: .
+    volumes:
+      - /mnt/@data/PRIVATE/photos/vlogs/Lukas:/app/content:ro
+      - ./dist:/app/dist

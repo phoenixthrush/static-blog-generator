@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Blog{% endblock %}</title>
+    <link rel="stylesheet" href="{{ css_href }}">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            {% include "sidebar.jinja" %}
+        </aside>
+
+        <main class="main-content">
+            {% block main %}{% endblock %}
+        </main>
+    </div>
+</body>
+
+</html>

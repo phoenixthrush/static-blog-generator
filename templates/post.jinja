@@ -1,0 +1,62 @@
+{% extends "layout.jinja" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block main %}
+    <article>
+        <h1>{{ title }}</h1>
+
+        {% if content %}
+            {{ content | safe }}
+        {% endif %}
+
+        {% if assets %}
+            <section class="assets">
+                <h2>Assets:</h2>
+
+                {% for asset in assets %}
+                    <div class="asset">
+                        <p><a href="{{ asset.url }}">{{ asset.name }}</a></p>
+
+                        {% if asset.kind == "image" %}
+                            <img src="{{ asset.url }}" alt="{{ asset.name }}">
+                        {% elif asset.kind == "video" %}
+                            <video controls preload="metadata" src="{{ asset.url }}"></video>
+                        {% elif asset.kind == "audio" %}
+                            <audio controls preload="none" src="{{ asset.url }}"></audio>
+                        {% elif asset.kind == "text" %}
+                            <pre>{{ asset.content }}</pre>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <nav class="post-nav">
+            {% if newer_post %}
+                <a href="{{ newer_post.slug }}.html" class="post-nav-prev">&lt;</a>
+            {% endif %}
+
+            {% if older_post %}
+                <a href="{{ older_post.slug }}.html" class="post-nav-next">&gt;</a>
+            {% endif %}
+        </nav>
+    </article>
+
+    <script>
+        document.addEventListener("keydown", function (event) {
+            const key = event.key.toLowerCase()
+
+            const prev = document.querySelector(".post-nav-prev")
+            const next = document.querySelector(".post-nav-next")
+
+            if ((key === "arrowleft" || key === "h") && prev) {
+                window.location.href = prev.href
+            }
+
+            if ((key === "arrowright" || key === "l") && next) {
+                window.location.href = next.href
+            }
+        })
+    </script>
+{% endblock %}

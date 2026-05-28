@@ -1,0 +1,11 @@
+{% extends "layout.jinja" %}
+
+{% block title %}My Journal{% endblock %}
+
+{% block main %}
+    {% if about %}
+        {{ about | safe }}
+    {% else %}
+        <p>Select a post from the table of contents.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+<nav>
+    <h1>Table of Contents</h1>
+    <p>{{ page_count }} pages</p>
+    <hr>
+
+    <h2>
+        <a href="{{ home_href }}">About Me</a>
+    </h2>
+
+    {% for year, months in archive.items() %}
+        {% set year_loop = loop %}
+
+        {% for month, posts in months.items() %}
+            {% set month_loop = loop %}
+            {% set ns = namespace(is_current_month=false) %}
+
+            {% if current_slug is defined %}
+                {% for post in posts %}
+                    {% if post.slug == current_slug %}
+                        {% set ns.is_current_month = true %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <details {% if ns.is_current_month or (current_slug is not defined and year_loop.first and month_loop.first) %}open{% endif %}>
+                <summary>{{ year }} {{ month }} <span>{{ posts | length }}</span></summary>
+
+                <ul>
+                    {% for post in posts %}
+                        <li>
+                            {% if current_slug is defined and current_slug == post.slug %}
+                                <span class="current">{{ post.title }}</span>
+                            {% else %}
+                                <a href="{{ post_href_prefix }}{{ post.slug }}.html">{{ post.title }}</a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        {% endfor %}
+    {% endfor %}
+</nav>
