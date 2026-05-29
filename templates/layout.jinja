@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Blog{% endblock %}</title>
     <link rel="stylesheet" href="{{ css_href }}">
+    <!-- Auto-generated on {{ generated_at_utc }} -->
 </head>
 
 <body>
@@ -16,9 +17,6 @@
 
         <main class="main-content">
             {% block main %}{% endblock %}
-            <footer class="site-footer">
-                <p>Generated statically on {{ generated_at_utc }}.</p>
-            </footer>
         </main>
     </div>
 </body>
