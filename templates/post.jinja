@@ -3,8 +3,14 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block main %}
-    <article>
-        <h1>{{ title }}</h1>
+    <article id="top">
+        <header class="article-header">
+            {% if weekday %}
+                <p class="article-weekday">{{ weekday }}</p>
+            {% endif %}
+
+            <h1>{{ title }}</h1>
+        </header>
 
         {% if content %}
             {{ content | safe }}
@@ -35,10 +41,16 @@
         <nav class="post-nav">
             {% if newer_post %}
                 <a href="{{ newer_post.slug }}.html" class="post-nav-prev">&lt;</a>
+            {% else %}
+                <span></span>
             {% endif %}
+
+            <a href="#top" class="post-nav-top">&lt;back to top&gt;</a>
 
             {% if older_post %}
                 <a href="{{ older_post.slug }}.html" class="post-nav-next">&gt;</a>
+            {% else %}
+                <span></span>
             {% endif %}
         </nav>
     </article>

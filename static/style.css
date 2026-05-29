@@ -126,6 +126,16 @@ code {
     margin-top: 40px;
 }
 
+.article-header {
+    margin-bottom: 32px;
+}
+
+.article-weekday {
+    margin: 0 0 8px;
+    opacity: 0.7;
+    text-transform: lowercase;
+}
+
 .assets {
     margin-top: 56px;
     padding-top: 24px;
@@ -169,14 +179,23 @@ code {
 }
 
 .post-nav {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     margin-top: 2rem;
     font-size: 2rem;
 }
 
 .post-nav a {
     text-decoration: none;
+}
+
+.post-nav-next {
+    justify-self: end;
+}
+
+.post-nav-top {
+    font-size: 1rem;
 }
 
 @media (max-width: 700px) {

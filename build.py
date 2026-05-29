@@ -1,6 +1,7 @@
 import shutil
 from calendar import month_name
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 
@@ -113,6 +114,14 @@ def clear_folder(folder: Path) -> None:
             path.unlink()
 
 
+def post_weekday(slug: str) -> str | None:
+    """Return the weekday for YYYY-MM-DD slugs."""
+    try:
+        return datetime.strptime(slug[:10], "%Y-%m-%d").strftime("%A")
+    except ValueError:
+        return None
+
+
 # -----------------------------
 # Prepare output
 # -----------------------------
@@ -176,6 +185,7 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
         {
             "slug": slug,
             "title": title,
+            "weekday": post_weekday(slug),
             "year": year,
             "month": month,
             "content": content,
@@ -239,6 +249,7 @@ index_output.write_text(prettify(index_html), encoding="utf-8")
 for post in posts:
     html = post_template.render(
         title=post["title"],
+        weekday=post["weekday"],
         content=post["content"],
         assets=post["assets"],
         archive=archive,
