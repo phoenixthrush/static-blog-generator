@@ -85,7 +85,14 @@ def prettify(html: str) -> str:
 
 def asset_kind(path: Path) -> str:
     """Get the asset kind from file extension."""
-    return asset_types.get(path.suffix.lower(), "file")
+    suffix = path.suffix.lower()
+    if suffix and suffix not in asset_types:
+        print(
+            f"Warning: Unsupported file extension '{suffix}' for '{path.relative_to(root)}'. "
+            "Treating it as a generic file asset."
+        )
+
+    return asset_types.get(suffix, "file")
 
 
 def is_readme(path: Path) -> bool:
