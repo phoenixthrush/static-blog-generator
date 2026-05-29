@@ -1,7 +1,7 @@
 import shutil
 from calendar import month_name
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -34,6 +34,7 @@ env = Environment(
 
 post_template = env.get_template("post.jinja")
 index_template = env.get_template("index.jinja")
+generated_at_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
 # -----------------------------
@@ -236,6 +237,7 @@ index_html = index_template.render(
     home_href="index.html",
     post_href_prefix="posts/",
     page_count=len(posts),
+    generated_at_utc=generated_at_utc,
 )
 
 index_output = dist_dir / "index.html"
@@ -260,6 +262,7 @@ for post in posts:
         page_count=len(posts),
         newer_post=post["newer_post"],
         older_post=post["older_post"],
+        generated_at_utc=generated_at_utc,
     )
 
     post_output = posts_out_dir / f"{post['slug']}.html"

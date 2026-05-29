@@ -16,6 +16,9 @@
 
         <main class="main-content">
             {% block main %}{% endblock %}
+            <footer class="site-footer">
+                <p>Generated statically on {{ generated_at_utc }}.</p>
+            </footer>
         </main>
     </div>
 </body>

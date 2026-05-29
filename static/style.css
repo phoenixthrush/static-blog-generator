@@ -121,6 +121,18 @@ code {
     margin: 0 0 24px;
 }
 
+.site-footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid currentColor;
+    opacity: 0.75;
+    font-size: 0.95rem;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
 .main-content h2,
 .main-content h3 {
     margin-top: 40px;
