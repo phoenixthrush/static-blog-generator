@@ -198,6 +198,16 @@ code {
     font-size: 1rem;
 }
 
+.post-text {
+    background-color: var(--text);
+    padding: 20px;
+}
+
+.post-text p {
+    white-space: pre-line;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 @media (max-width: 700px) {
     .container {
         grid-template-columns: 1fr;

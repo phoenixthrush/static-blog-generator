@@ -13,7 +13,9 @@
         </header>
 
         {% if content %}
-            {{ content | safe }}
+            <div class="post-text">
+                {{ content | safe }}
+            </div>
         {% endif %}
 
         {% if assets %}
