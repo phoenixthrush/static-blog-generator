@@ -6,6 +6,7 @@
     --bg: rgb(0, 0, 0);
     --sidebar: rgb(20, 20, 20);
     --main: rgb(40, 40, 40);
+    --post-text: rgb(20, 20, 20);
     --text: white;
     --max: 1200px;
     --gap: clamp(24px, 6vw, 80px);
@@ -199,7 +200,7 @@ code {
 }
 
 .post-text {
-    background-color: var(--text);
+    background-color: var(--post-text);
     padding: 20px;
 }
 
