@@ -137,6 +137,11 @@ code {
     text-transform: lowercase;
 }
 
+.article-age {
+    margin: 0 0 8px;
+    opacity: 0.7;
+}
+
 .assets {
     margin-top: 56px;
     padding-top: 24px;

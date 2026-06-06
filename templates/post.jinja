@@ -8,6 +8,9 @@
             {% if weekday %}
                 <p class="article-weekday">{{ weekday }}</p>
             {% endif %}
+            {% if age is not none %}
+                <p class="article-age">age {{ age }}</p>
+            {% endif %}
 
             <h1>{{ title }}</h1>
         </header>

@@ -1,7 +1,7 @@
 import shutil
 from calendar import month_name
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -71,6 +71,7 @@ asset_types = {
 readme_names = {"readme.md", "readme.txt"}
 
 month_names = {f"{i:02}": month_name[i] for i in range(1, 13)}
+birthday = date(2005, 10, 18)
 
 
 # -----------------------------
@@ -122,12 +123,32 @@ def clear_folder(folder: Path) -> None:
             path.unlink()
 
 
-def post_weekday(slug: str) -> str | None:
-    """Return the weekday for YYYY-MM-DD slugs."""
+def post_date(slug: str) -> date | None:
+    """Return the date for YYYY-MM-DD slugs."""
     try:
-        return datetime.strptime(slug[:10], "%Y-%m-%d").strftime("%A")
+        return datetime.strptime(slug[:10], "%Y-%m-%d").date()
     except ValueError:
         return None
+
+
+def post_weekday(slug: str) -> str | None:
+    """Return the weekday for YYYY-MM-DD slugs."""
+    dated_post = post_date(slug)
+    if dated_post is None:
+        return None
+
+    return dated_post.strftime("%A")
+
+
+def post_age(slug: str) -> int | None:
+    """Return the age in years for YYYY-MM-DD slugs."""
+    dated_post = post_date(slug)
+    if dated_post is None or dated_post < birthday:
+        return None
+
+    return dated_post.year - birthday.year - (
+        (dated_post.month, dated_post.day) < (birthday.month, birthday.day)
+    )
 
 
 # -----------------------------
@@ -194,6 +215,7 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
             "slug": slug,
             "title": title,
             "weekday": post_weekday(slug),
+            "age": post_age(slug),
             "year": year,
             "month": month,
             "content": content,
@@ -259,6 +281,7 @@ for post in posts:
     html = post_template.render(
         title=post["title"],
         weekday=post["weekday"],
+        age=post["age"],
         content=post["content"],
         assets=post["assets"],
         archive=archive,
