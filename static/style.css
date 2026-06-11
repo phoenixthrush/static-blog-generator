@@ -215,6 +215,22 @@ code {
     margin-bottom: 0;
 }
 
+.fullscreen-video {
+    position: fixed;
+    inset: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    z-index: 9999;
+    background: black;
+    object-fit: contain;
+    margin: 0 !important;
+
+    transition:
+        width 0.25s ease,
+        height 0.25s ease;
+}
+
 @media (max-width: 700px) {
     .container {
         grid-template-columns: 1fr;

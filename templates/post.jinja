@@ -61,19 +61,69 @@
     </article>
 
     <script>
-        document.addEventListener("keydown", function (event) {
-            const key = event.key.toLowerCase()
+    document.addEventListener("keydown", async function (event) {
+        const key = event.key.toLowerCase();
 
-            const prev = document.querySelector(".post-nav-prev")
-            const next = document.querySelector(".post-nav-next")
+        const prev = document.querySelector(".post-nav-prev");
+        const next = document.querySelector(".post-nav-next");
 
-            if ((key === "arrowleft" || key === "h") && prev) {
-                window.location.href = prev.href
+        // Navigate between posts with arrow keys or Vim-style bindings.
+        if ((key === "arrowleft" || key === "h") && prev) {
+            window.location.href = prev.href;
+            return;
+        }
+
+        if ((key === "arrowright" || key === "l") && next) {
+            window.location.href = next.href;
+            return;
+        }
+
+        // Only handle fullscreen shortcuts on a fresh F key press.
+        if (key !== "f" || event.repeat) {
+            return;
+        }
+
+        let playingVideo = null;
+
+        // Find the first video that is currently playing.
+        document.querySelectorAll("video").forEach(function(video) {
+            if (!playingVideo && !video.paused && !video.ended) {
+                playingVideo = video;
+            }
+        });
+
+        // Do nothing if no video is playing.
+        if (!playingVideo) {
+            return;
+        }
+
+        // Shift+F toggles the browser's native fullscreen mode.
+        if (event.shiftKey) {
+            try {
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                } else {
+                    await playingVideo.requestFullscreen();
+                }
+            } catch (err) {
+                console.error(err);
             }
 
-            if ((key === "arrowright" || key === "l") && next) {
-                window.location.href = next.href
-            }
-        })
+            return;
+        }
+
+        // F toggles fullscreen within the page layout.
+        playingVideo.classList.toggle("fullscreen-video");
+    });
+
+    // Escape exits page-level fullscreen mode.
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll(".fullscreen-video").forEach(function(video) {
+                video.classList.remove("fullscreen-video");
+            });
+        }
+    });
     </script>
+
 {% endblock %}
