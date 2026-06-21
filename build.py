@@ -146,9 +146,29 @@ def post_age(slug: str) -> int | None:
     if dated_post is None or dated_post < birthday:
         return None
 
-    return dated_post.year - birthday.year - (
-        (dated_post.month, dated_post.day) < (birthday.month, birthday.day)
+    return (
+        dated_post.year
+        - birthday.year
+        - ((dated_post.month, dated_post.day) < (birthday.month, birthday.day))
     )
+
+
+def format_file_size(size_bytes: int) -> str:
+    """Return a compact human-readable size label."""
+    units = ["B", "KB", "MB", "GB", "TB"]
+    size = float(size_bytes)
+
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            if unit == "B":
+                return f"{int(size)}{unit}"
+
+            if size.is_integer():
+                return f"{int(size)}{unit}"
+
+            return f"{size:.1f}{unit}"
+
+        size /= 1024
 
 
 # -----------------------------
@@ -194,11 +214,13 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
         relative_path = path.relative_to(folder)
         relative_url = "/".join(quote(part) for part in relative_path.parts)
         kind = asset_kind(path)
+        size = format_file_size(path.stat().st_size)
 
         asset = {
             "name": str(relative_path),
             "url": f"/media/{slug}/{relative_url}",
             "kind": kind,
+            "size": size,
         }
 
         if kind == "text":

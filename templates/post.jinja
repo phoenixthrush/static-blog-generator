@@ -27,7 +27,7 @@
 
                 {% for asset in assets %}
                     <div class="asset">
-                        <p><a href="{{ asset.url }}">{{ asset.name }}</a></p>
+                        <p><a href="{{ asset.url }}">{{ asset.name }} ({{ asset.size }})</a></p>
 
                         {% if asset.kind == "image" %}
                             <img src="{{ asset.url }}" alt="{{ asset.name }}">
