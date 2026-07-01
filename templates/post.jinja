@@ -5,12 +5,17 @@
 {% block main %}
     <article id="top">
         <header class="article-header">
-            {% if weekday %}
-                <p class="article-weekday">{{ weekday }}</p>
-            {% endif %}
-            {% if age is not none %}
-                <p class="article-age">age {{ age }}</p>
-            {% endif %}
+            <div class="article-meta">
+                {% if weekday %}
+                    <p class="article-weekday">{{ weekday }}</p>
+                {% endif %}
+                {% if age is not none %}
+                    <p class="article-age">{{ age }} yo</p>
+                {% endif %}
+                {% if days_since_post is not none %}
+                    <p class="article-age">{{ days_since_post }} days passed</p>
+                {% endif %}
+            </div>
 
             <h1>{{ title }}</h1>
         </header>
@@ -61,6 +66,18 @@
     </article>
 
     <script>
+    document.querySelectorAll("video").forEach(function(video) {
+        video.addEventListener("ended", function() {
+            video.classList.remove("fullscreen-video");
+
+            if (document.fullscreenElement === video) {
+                document.exitFullscreen().catch(function(err) {
+                    console.error(err);
+                });
+            }
+        });
+    });
+
     document.addEventListener("keydown", async function (event) {
         const key = event.key.toLowerCase();
 

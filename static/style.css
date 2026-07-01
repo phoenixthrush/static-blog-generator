@@ -128,17 +128,25 @@ code {
 }
 
 .article-header {
-    margin-bottom: 32px;
+    margin-bottom: 12px;
+}
+
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: baseline;
+    margin-bottom: 8px;
 }
 
 .article-weekday {
-    margin: 0 0 8px;
+    margin: 0;
     opacity: 0.7;
     text-transform: lowercase;
 }
 
 .article-age {
-    margin: 0 0 8px;
+    margin: 0;
     opacity: 0.7;
 }
 

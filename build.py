@@ -153,6 +153,15 @@ def post_age(slug: str) -> int | None:
     )
 
 
+def post_days_since(slug: str) -> int | None:
+    """Return the number of days since the post date."""
+    dated_post = post_date(slug)
+    if dated_post is None:
+        return None
+
+    return (date.today() - dated_post).days
+
+
 def format_file_size(size_bytes: int) -> str:
     """Return a compact human-readable size label."""
     units = ["B", "KB", "MB", "GB", "TB"]
@@ -238,6 +247,7 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
             "title": title,
             "weekday": post_weekday(slug),
             "age": post_age(slug),
+            "days_since_post": post_days_since(slug),
             "year": year,
             "month": month,
             "content": content,
@@ -304,6 +314,7 @@ for post in posts:
         title=post["title"],
         weekday=post["weekday"],
         age=post["age"],
+        days_since_post=post["days_since_post"],
         content=post["content"],
         assets=post["assets"],
         archive=archive,
