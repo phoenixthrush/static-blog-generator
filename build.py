@@ -203,9 +203,7 @@ def format_file_size(size_bytes: int) -> str:
 clear_folder(dist_dir)
 posts_out_dir.mkdir(exist_ok=True)
 
-css = static_dir / "style.css"
-if css.exists():
-    shutil.copy(css, dist_dir / "style.css")
+shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
 
 if args.demo:
     shutil.copytree(content_dir, dist_dir / "media")

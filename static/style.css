@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'Playpen Sans';
+    src: url('fonts/playpen-sans/PlaypenSans.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -30,7 +38,7 @@ body {
 
 body {
     color: var(--text);
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Playpen Sans', 'Segoe Print', 'Bradley Hand', cursive;
 }
 
 ::selection {
@@ -61,6 +69,11 @@ hr {
 img,
 video {
     height: auto;
+}
+
+pre,
+code {
+    font-family: 'Courier New', Courier, monospace;
 }
 
 pre {

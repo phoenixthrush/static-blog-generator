@@ -37,7 +37,14 @@ python -m http.server 8000 --directory dist
 
 Open [localhost:8000](http://localhost:8000). The demo includes an SVG postcard,
 a short generated WAV arpeggio, and a text attachment. Demo builds bundle their
-media in `dist/media/`; regular builds keep the existing external `/media/` URLs.
+media in `dist/media/`; regular builds use your separately served media directory.
+
+## fonts
+
+The [Playpen Sans](https://github.com/TypeTogether/Playpen-Sans) font is bundled
+under `static/fonts/playpen-sans/`, including its SIL Open Font License. The
+builder copies it to `dist/fonts/playpen-sans/` alongside the stylesheet.
+Font files are served from your own server, with no CDN or external font service.
 
 ## archive
 
