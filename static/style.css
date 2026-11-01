@@ -4,14 +4,18 @@
 
 :root {
     color-scheme: dark;
-    --bg: rgb(0, 0, 0);
-    --sidebar: rgb(20, 20, 20);
-    --main: rgb(40, 40, 40);
-    --post-text: rgb(20, 20, 20);
-    --text: #e7e5df;
-    --muted: #aaa79f;
-    --accent: #c6b787;
-    --line: #3b3a36;
+    --bg: #000;
+    --sidebar: #121015;
+    --main: #1a171d;
+    --post-text: #100e13;
+    --text: #e6ded2;
+    --muted: #a89ba9;
+    --accent: #a78dbb;
+    --line: #372f3d;
+    --line-strong: #514358;
+    --red: #6b3945;
+    --hover: #1b1620;
+    --current: #261e2d;
     --max: 1200px;
     --gap: clamp(24px, 6vw, 80px);
     --pad: clamp(16px, 4vw, 40px);
@@ -27,8 +31,6 @@ body {
 body {
     color: var(--text);
     font-family: 'Courier New', Courier, monospace;
-    background-image: radial-gradient(#242424 0.5px, transparent 0.5px);
-    background-size: 8px 8px;
 }
 
 ::selection {
@@ -143,7 +145,7 @@ blockquote {
 }
 
 .sidebar-label span {
-    color: var(--accent);
+    color: var(--red);
 }
 
 .archive-stats,
@@ -159,6 +161,7 @@ blockquote {
 }
 
 .home-link a {
+    color: var(--accent);
     text-underline-offset: 4px;
 }
 
@@ -196,7 +199,7 @@ blockquote {
 }
 
 .sidebar li a:hover {
-    background: #22211e;
+    background: var(--hover);
 }
 
 .sidebar summary {
@@ -248,7 +251,7 @@ blockquote {
     background: var(--main);
     padding: var(--pad);
     border: 1px solid var(--line);
-    border-top-color: #6a6350;
+    border-top-color: var(--red);
     min-width: 0;
     line-height: 1.75;
     overflow-wrap: break-word;
@@ -266,7 +269,7 @@ blockquote {
 .article-header {
     margin-bottom: 24px;
     padding-bottom: 12px;
-    border-bottom: 1px dashed #59564f;
+    border-bottom: 1px dashed var(--line-strong);
 }
 
 .article-header h1 {
@@ -299,7 +302,7 @@ blockquote {
 .assets {
     margin-top: 56px;
     padding-top: 24px;
-    border-top: 1px dashed #59564f;
+    border-top: 1px dashed var(--line-strong);
 }
 
 .assets h2 {
@@ -338,7 +341,7 @@ blockquote {
 
 .sidebar li a.current {
     border-left-color: var(--accent);
-    background: #29261f;
+    background: var(--current);
     color: var(--accent);
 }
 
@@ -348,7 +351,7 @@ blockquote {
     align-items: center;
     margin-top: 2rem;
     font-size: 2rem;
-    border-top: 1px dashed #59564f;
+    border-top: 1px dashed var(--line-strong);
     padding-top: 16px;
 }
 
