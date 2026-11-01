@@ -244,6 +244,27 @@ blockquote {
     font-variant-numeric: tabular-nums;
 }
 
+.sidebar-radio {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--line);
+}
+
+.sidebar-radio h2 {
+    margin: 0 0 16px;
+    font-size: 1rem;
+}
+
+.sidebar-radio h2 span {
+    color: var(--accent);
+}
+
+.sidebar-radio iframe {
+    display: block;
+    max-width: 100%;
+    border: 0;
+}
+
 .main-content {
     background: var(--main);
     padding: var(--pad);
