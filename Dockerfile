@@ -11,5 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY build.py .
 COPY templates templates
 COPY static static
+COPY examples examples
 
 CMD ["python", "build.py"]

@@ -1,42 +1,46 @@
-<nav>
+<nav aria-label="Journal archive">
+    <p class="sidebar-label"><span aria-hidden="true">✦</span> personal archive</p>
     <h1>Table of Contents</h1>
-    <p>{{ page_count }} pages</p>
+    <p class="archive-stats">{{ page_count }} {{ 'page' if page_count == 1 else 'pages' }} · {{ archive | length }} {{ 'year' if archive | length == 1 else 'years' }}</p>
     <hr>
 
-    <h2>
-        <a href="{{ home_href }}">New Here?</a>
+    <h2 class="home-link">
+        <a href="{{ home_href }}" {% if current_slug is not defined %}aria-current="page"{% endif %}>New Here?</a>
     </h2>
 
     {% for year, months in archive.items() %}
         {% set year_loop = loop %}
+        {% set is_current_year = current_slug is defined and current_slug[:4] == year %}
+        {% set year_count = months.values() | map('length') | sum %}
 
-        {% for month, posts in months.items() %}
-            {% set month_loop = loop %}
-            {% set ns = namespace(is_current_month=false) %}
+        <details class="archive-year" {% if is_current_year or (current_slug is not defined and loop.first) %}open{% endif %}>
+            <summary>
+                <span>{{ year }}</span>
+                <span class="archive-count" aria-label="{{ year_count }} {{ 'page' if year_count == 1 else 'pages' }}">{{ year_count }}</span>
+            </summary>
 
-            {% if current_slug is defined %}
-                {% for post in posts %}
-                    {% if post.slug == current_slug %}
-                        {% set ns.is_current_month = true %}
-                    {% endif %}
+            <div class="archive-months">
+                {% for month, posts in months.items() %}
+                    {% set is_current_month = current_slug is defined and current_slug in (posts | map(attribute='slug') | list) %}
+
+                    <details class="archive-month" {% if is_current_month or (current_slug is not defined and year_loop.first and loop.first) %}open{% endif %}>
+                        <summary>
+                            <span>{{ month }}</span>
+                            <span class="archive-count" aria-label="{{ posts | length }} {{ 'page' if posts | length == 1 else 'pages' }}">{{ posts | length }}</span>
+                        </summary>
+
+                        <ul>
+                            {% for post in posts %}
+                                <li>
+                                    <a href="{{ post_href_prefix }}{{ post.slug }}.html" {% if current_slug is defined and current_slug == post.slug %}class="current" aria-current="page"{% endif %}>{{ post.title }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
                 {% endfor %}
-            {% endif %}
-
-            <details {% if ns.is_current_month or (current_slug is not defined and year_loop.first and month_loop.first) %}open{% endif %}>
-                <summary>{{ year }} {{ month }} <span>{{ posts | length }}</span></summary>
-
-                <ul>
-                    {% for post in posts %}
-                        <li>
-                            {% if current_slug is defined and current_slug == post.slug %}
-                                <span class="current">{{ post.title }}</span>
-                            {% else %}
-                                <a href="{{ post_href_prefix }}{{ post.slug }}.html">{{ post.title }}</a>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </details>
-        {% endfor %}
+            </div>
+        </details>
+    {% else %}
+        <p class="archive-empty">No entries yet.</p>
     {% endfor %}
 </nav>

@@ -1,7 +1,8 @@
+import argparse
 import shutil
 from calendar import month_name
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 from urllib.parse import quote
 
@@ -14,11 +15,24 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 # -----------------------------
 
 root = Path(__file__).parent
-content_dir = root / "content"
+parser = argparse.ArgumentParser(description="Build the static journal.")
+parser.add_argument(
+    "--demo",
+    action="store_true",
+    help="Build the bundled sample journal with its assets.",
+)
+args = parser.parse_args()
+
+content_dir = root / "examples" / "content" if args.demo else root / "content"
 templates_dir = root / "templates"
 static_dir = root / "static"
 dist_dir = root / "dist"
 posts_out_dir = dist_dir / "posts"
+
+if not content_dir.is_dir():
+    parser.error(
+        f"Content directory not found: {content_dir}. Try --demo for sample posts."
+    )
 
 
 # -----------------------------
@@ -34,7 +48,7 @@ env = Environment(
 
 post_template = env.get_template("post.jinja")
 index_template = env.get_template("index.jinja")
-generated_at_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+generated_at_utc = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
 # -----------------------------
@@ -81,7 +95,9 @@ birthday = date(2005, 10, 18)
 
 def prettify(html: str) -> str:
     """Format html for readable output."""
-    return BeautifulSoup(html, "html.parser").prettify()
+    return BeautifulSoup(
+        html, "html.parser", preserve_whitespace_tags={"pre", "textarea", "p"}
+    ).prettify()
 
 
 def asset_kind(path: Path) -> str:
@@ -191,6 +207,9 @@ css = static_dir / "style.css"
 if css.exists():
     shutil.copy(css, dist_dir / "style.css")
 
+if args.demo:
+    shutil.copytree(content_dir, dist_dir / "media")
+
 
 # -----------------------------
 # Build posts
@@ -260,9 +279,11 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
 # Link neighboring posts
 # -----------------------------
 
+# Posts are newest first. The template intentionally places older on the left
+# and newer on the right; preserve that direction when changing navigation.
 for index, post in enumerate(posts):
-    post["older_post"] = posts[index - 1] if index > 0 else None
-    post["newer_post"] = posts[index + 1] if index < len(posts) - 1 else None
+    post["newer_post"] = posts[index - 1] if index > 0 else None
+    post["older_post"] = posts[index + 1] if index < len(posts) - 1 else None
 
 
 # -----------------------------

@@ -48,17 +48,18 @@
             </section>
         {% endif %}
 
-        <nav class="post-nav">
-            {% if newer_post %}
-                <a href="{{ newer_post.slug }}.html" class="post-nav-prev">&lt;</a>
+        <nav class="post-nav" aria-label="Between journal entries">
+            {# Intentional journal convention: left = older, right = newer. Do not reverse these arrows. #}
+            {% if older_post %}
+                <a href="{{ older_post.slug }}.html" class="post-nav-prev" aria-label="Older entry: {{ older_post.title }}" title="Older entry">&lt;</a>
             {% else %}
                 <span></span>
             {% endif %}
 
             <a href="#top" class="post-nav-top">&lt;back to top&gt;</a>
 
-            {% if older_post %}
-                <a href="{{ older_post.slug }}.html" class="post-nav-next">&gt;</a>
+            {% if newer_post %}
+                <a href="{{ newer_post.slug }}.html" class="post-nav-next" aria-label="Newer entry: {{ newer_post.title }}" title="Newer entry">&gt;</a>
             {% else %}
                 <span></span>
             {% endif %}

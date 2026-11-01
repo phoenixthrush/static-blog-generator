@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">A postcard from a quiet evening</title>
+  <desc id="desc">A pixel-like moon and stars above dark mountains and a lake, framed with an amber border.</desc>
+  <defs>
+    <pattern id="stars" width="167" height="113" patternUnits="userSpaceOnUse">
+      <path d="M23 24h2v2h-2zM110 80h2v2h-2zM73 52h1v1h-1z" fill="#b9b7a1" opacity=".65"/>
+    </pattern>
+    <pattern id="water" width="100" height="24" patternUnits="userSpaceOnUse">
+      <path d="M5 10h24m36 8h17" stroke="#363c40"/>
+    </pattern>
+  </defs>
+  <path fill="#111419" d="M0 0h960v540H0z"/>
+  <path fill="url(#stars)" d="M24 24h912v310H24z"/>
+  <path d="M733 82h44v12h12v44h-12v12h-44v-12h-12V94h12z" fill="#c6b787"/>
+  <path d="M754 82h23v12h12v44h-12v12h-23v-12h12V94h-12z" fill="#a69872"/>
+  <path d="m24 332 140-138 134 116 153-160 187 169 118-101 180 119v93H24z" fill="#262c33"/>
+  <path d="m24 367 199-94 141 106 184-119 161 99 127-76 100 77v73H24z" fill="#1b2229"/>
+  <path d="M24 385h912v131H24z" fill="#171d23"/>
+  <path d="M24 396h912v120H24z" fill="url(#water)"/>
+  <path d="M729 402h54m-43 15h29m-45 16h66m-49 14h27" stroke="#a69872" opacity=".5"/>
+  <path d="M12.5 12.5h935v515h-935zM24.5 24.5h911v491h-911z" fill="none" stroke="#6a6350"/>
+  <path d="M12 44V12h32m872 0h32v32M12 496v32h32m872 0h32v-32" fill="none" stroke="#c6b787"/>
+  <text x="48" y="484" fill="#bcb9ac" font-family="monospace" font-size="14" letter-spacing="3">SOMEWHERE AFTER MIDNIGHT / SAMPLE POSTCARD</text>
+</svg>
