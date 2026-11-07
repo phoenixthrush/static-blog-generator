@@ -1,8 +1,11 @@
 import argparse
 import shutil
+import subprocess
+import sys
 from calendar import month_name
 from collections import defaultdict
 from datetime import UTC, date, datetime
+from hashlib import sha256
 from pathlib import Path
 from urllib.parse import quote
 
@@ -21,6 +24,11 @@ parser.add_argument(
     action="store_true",
     help="Build the bundled sample journal with its assets.",
 )
+parser.add_argument(
+    "--bundle-media",
+    action="store_true",
+    help="Copy post assets into dist so the site can be opened without a server.",
+)
 args = parser.parse_args()
 
 content_dir = root / "examples" / "content" if args.demo else root / "content"
@@ -28,6 +36,8 @@ templates_dir = root / "templates"
 static_dir = root / "static"
 dist_dir = root / "dist"
 posts_out_dir = dist_dir / "posts"
+thumbnails_dir = dist_dir / "thumbnails"
+bundle_media = args.demo or args.bundle_media
 
 if not content_dir.is_dir():
     parser.error(
@@ -196,6 +206,58 @@ def format_file_size(size_bytes: int) -> str:
         size /= 1024
 
 
+def build_video_poster(path: Path) -> str | None:
+    """Extract the first video frame as a small JPEG in the build output."""
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-nostdin",
+                "-i",
+                str(path),
+                "-map",
+                "0:V:0",
+                "-frames:v",
+                "1",
+                # Fit within 640px without upscaling, using the display aspect ratio.
+                "-vf",
+                (
+                    "scale='max(1,min(640,min(640,ih)*dar))':"
+                    "'max(1,min(640,min(ih,640/dar)))',setsar=1"
+                ),
+                "-c:v",
+                "mjpeg",
+                "-q:v",
+                "5",
+                "-f",
+                "image2pipe",
+                "pipe:1",
+            ],
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        detail = str(error)
+    else:
+        if result.returncode == 0 and result.stdout:
+            filename = f"{sha256(result.stdout).hexdigest()}.jpg"
+            thumbnails_dir.mkdir(exist_ok=True)
+            (thumbnails_dir / filename).write_bytes(result.stdout)
+            return f"../thumbnails/{filename}"
+
+        detail = result.stderr.decode(errors="replace").strip() or "no frame decoded"
+
+    print(
+        f"Warning: Could not generate poster for '{path.relative_to(content_dir)}': {detail}",
+        file=sys.stderr,
+    )
+    return None
+
+
 # -----------------------------
 # Prepare output
 # -----------------------------
@@ -204,10 +266,6 @@ clear_folder(dist_dir)
 posts_out_dir.mkdir(exist_ok=True)
 
 shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
-
-if args.demo:
-    shutil.copytree(content_dir, dist_dir / "media")
-
 
 # -----------------------------
 # Build posts
@@ -238,19 +296,26 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
             continue
 
         relative_path = path.relative_to(folder)
-        relative_url = "/".join(quote(part) for part in relative_path.parts)
+        media_path = path.relative_to(content_dir)
         kind = asset_kind(path)
         size = format_file_size(path.stat().st_size)
 
         asset = {
             "name": str(relative_path),
-            "url": f"/media/{slug}/{relative_url}",
+            "url": f"../media/{quote(media_path.as_posix())}",
             "kind": kind,
             "size": size,
         }
 
         if kind == "text":
             asset["content"] = path.read_text(encoding="utf-8", errors="replace")
+        elif kind == "video":
+            asset["poster"] = build_video_poster(path)
+
+        if bundle_media:
+            media_output = dist_dir / "media" / media_path
+            media_output.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, media_output)
 
         assets.append(asset)
 

@@ -37,7 +37,7 @@
                         {% if asset.kind == "image" %}
                             <img src="{{ asset.url }}" alt="{{ asset.name }}">
                         {% elif asset.kind == "video" %}
-                            <video controls src="{{ asset.url }}"></video>
+                            <video controls src="{{ asset.url }}"{% if asset.poster %} poster="{{ asset.poster }}" preload="none"{% endif %}></video>
                         {% elif asset.kind == "audio" %}
                             <audio controls src="{{ asset.url }}"></audio>
                         {% elif asset.kind == "text" %}

@@ -24,6 +24,31 @@ content/
 
 other files are shown as assets.
 
+## video previews
+
+The build uses FFmpeg to extract the first frame of each video into
+`dist/thumbnails/`. The player displays that JPEG before loading the video.
+The Docker image includes FFmpeg. For a local Python build, install `ffmpeg`
+and make sure it is on your PATH. If a poster cannot be generated, the build
+warns and still includes the video.
+
+## open locally
+
+To build a portable copy, run either command:
+
+```bash
+python build.py --bundle-media
+docker compose run --build --rm site-builder python build.py --bundle-media
+```
+
+Open `dist/index.html` directly in your browser. This copies post assets
+into `dist/media/` so their relative links work from disk or over HTTP.
+Keep the whole `dist/` folder together when moving the bundle.
+
+Regular builds keep the site and thumbnails in `dist/`. The post asset
+links still resolve to `/media/` when the blog is hosted at the site root,
+so your existing media server can serve the originals separately.
+
 ## sample journal
 
 The fictional sample posts and assets are kept in `examples/content/`.
@@ -35,9 +60,9 @@ python build.py --demo
 python -m http.server 8000 --directory dist
 ```
 
-Open [localhost:8000](http://localhost:8000). The demo includes an SVG postcard,
-a short generated WAV arpeggio, and a text attachment. Demo builds bundle their
-media in `dist/media/`; regular builds use your separately served media directory.
+Open [localhost:8000](http://localhost:8000) or open `dist/index.html` directly.
+The demo includes an SVG postcard, a short generated WAV arpeggio, and a text
+attachment. Demo builds bundle their media in `dist/media/`.
 
 ## fonts
 
