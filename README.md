@@ -28,6 +28,10 @@ other files are shown as assets.
 
 The build uses FFmpeg to extract the first frame of each video into
 `dist/thumbnails/`. The player displays that JPEG before loading the video.
+Builds reuse existing posters for videos with the same path, size, and
+modification time and remove posters for videos absent from the build.
+Delete `dist/thumbnails/` before rebuilding to regenerate all posters.
+
 The Docker image includes FFmpeg. For a local Python build, install `ffmpeg`
 and make sure it is on your PATH. If a poster cannot be generated, the build
 warns and still includes the video.

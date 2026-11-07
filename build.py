@@ -6,7 +6,9 @@ from calendar import month_name
 from collections import defaultdict
 from datetime import UTC, date, datetime
 from hashlib import sha256
+from os import stat_result
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.parse import quote
 
 import markdown
@@ -136,13 +138,16 @@ def find_readme(folder: Path) -> Path | None:
     return None
 
 
-def clear_folder(folder: Path) -> None:
-    """Clear a folder without removing it."""
+def clear_folder(folder: Path, *, keep: Path) -> None:
+    """Clear a folder while preserving one entry."""
     if not folder.exists():
         folder.mkdir()
         return
 
     for path in folder.iterdir():
+        if path == keep:
+            continue
+
         if path.is_dir():
             shutil.rmtree(path)
         else:
@@ -206,8 +211,15 @@ def format_file_size(size_bytes: int) -> str:
         size /= 1024
 
 
-def build_video_poster(path: Path) -> str | None:
-    """Extract the first video frame as a small JPEG in the build output."""
+def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
+    """Reuse a poster for an unchanged video or extract its first frame."""
+    source_path = path.relative_to(root).as_posix()
+    fingerprint = f"{source_path}:{video_stat.st_size}:{video_stat.st_mtime_ns}"
+    filename = f"{sha256(fingerprint.encode()).hexdigest()}.jpg"
+    poster_path = thumbnails_dir / filename
+    if poster_path.is_file():
+        return poster_path
+
     try:
         result = subprocess.run(
             [
@@ -244,10 +256,12 @@ def build_video_poster(path: Path) -> str | None:
         detail = str(error)
     else:
         if result.returncode == 0 and result.stdout:
-            filename = f"{sha256(result.stdout).hexdigest()}.jpg"
             thumbnails_dir.mkdir(exist_ok=True)
-            (thumbnails_dir / filename).write_bytes(result.stdout)
-            return f"../thumbnails/{filename}"
+            with TemporaryDirectory(dir=thumbnails_dir) as temp_dir:
+                pending = Path(temp_dir) / filename
+                pending.write_bytes(result.stdout)
+                pending.replace(poster_path)
+            return poster_path
 
         detail = result.stderr.decode(errors="replace").strip() or "no frame decoded"
 
@@ -262,7 +276,7 @@ def build_video_poster(path: Path) -> str | None:
 # Prepare output
 # -----------------------------
 
-clear_folder(dist_dir)
+clear_folder(dist_dir, keep=thumbnails_dir)
 posts_out_dir.mkdir(exist_ok=True)
 
 shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
@@ -272,6 +286,7 @@ shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
 # -----------------------------
 
 posts = []
+used_posters = set()
 
 for folder in sorted(content_dir.iterdir(), reverse=True):
     if not folder.is_dir():
@@ -298,7 +313,8 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
         relative_path = path.relative_to(folder)
         media_path = path.relative_to(content_dir)
         kind = asset_kind(path)
-        size = format_file_size(path.stat().st_size)
+        file_stat = path.stat()
+        size = format_file_size(file_stat.st_size)
 
         asset = {
             "name": str(relative_path),
@@ -310,7 +326,10 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
         if kind == "text":
             asset["content"] = path.read_text(encoding="utf-8", errors="replace")
         elif kind == "video":
-            asset["poster"] = build_video_poster(path)
+            poster = build_video_poster(path, file_stat)
+            if poster is not None:
+                used_posters.add(poster)
+                asset["poster"] = f"../thumbnails/{poster.name}"
 
         if bundle_media:
             media_output = dist_dir / "media" / media_path
@@ -419,6 +438,10 @@ for post in posts:
 # -----------------------------
 # Done
 # -----------------------------
+
+for poster in thumbnails_dir.glob("*.jpg"):
+    if poster not in used_posters and poster.is_file():
+        poster.unlink(missing_ok=True)
 
 print(f"Wrote {index_output}")
 print(f"Wrote {len(posts)} post(s)")
