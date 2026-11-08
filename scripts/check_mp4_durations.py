@@ -1,13 +1,8 @@
 import argparse
-import re
 from os import fstat
 from pathlib import Path
 from struct import Struct, unpack
 from typing import BinaryIO
-
-RECORDING_NAME = re.compile(
-    r"\d{4}-\d{2}-\d{2} \d{2}-\d{2}-\d{2}\.mp4", re.ASCII | re.IGNORECASE
-)
 
 
 def find_atom(file: BinaryIO, name: bytes, start: int, end: int) -> tuple[int, int]:
@@ -71,7 +66,7 @@ def read_movie_duration(path: Path) -> float | None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Print the MP4 movie header duration for timestamp-named recordings."
+        description="Print the movie header duration for each MP4 file in a directory tree."
     )
     parser.add_argument(
         "directory",
@@ -84,16 +79,16 @@ def main() -> int:
     if not args.directory.is_dir():
         parser.error(f"not a directory: {args.directory}")
 
-    recordings = sorted(
+    mp4_files = sorted(
         path
         for path in args.directory.rglob("*")
-        if RECORDING_NAME.fullmatch(path.name) and path.is_file()
+        if path.name.lower().endswith(".mp4") and path.is_file()
     )
-    if not recordings:
-        print("No YYYY-MM-DD HH-MM-SS.mp4 recordings found.")
+    if not mp4_files:
+        print("No MP4 files found.")
 
     failed = False
-    for path in recordings:
+    for path in mp4_files:
         try:
             seconds = read_movie_duration(path)
         except (OSError, ValueError) as error:
