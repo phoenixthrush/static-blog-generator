@@ -130,32 +130,6 @@ blockquote {
     box-shadow: inset 0 0 0 2px var(--bg);
 }
 
-.sidebar::before,
-.sidebar::after,
-.main-content::before,
-.main-content::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border: solid var(--accent);
-    pointer-events: none;
-}
-
-.sidebar::before,
-.main-content::before {
-    top: 3px;
-    left: 3px;
-    border-width: 1px 0 0 1px;
-}
-
-.sidebar::after,
-.main-content::after {
-    right: 3px;
-    bottom: 3px;
-    border-width: 0 1px 1px 0;
-}
-
 .sidebar {
     background: var(--sidebar);
     padding: clamp(20px, 2.5vw, 28px);
