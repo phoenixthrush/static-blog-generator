@@ -218,8 +218,10 @@ def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
     filename = f"{sha256(fingerprint.encode()).hexdigest()}.jpg"
     poster_path = thumbnails_dir / filename
     if poster_path.is_file():
+        print(f"  Reusing cached poster for {source_path}", flush=True)
         return poster_path
 
+    print(f"  Generating poster for {source_path}", flush=True)
     try:
         result = subprocess.run(
             [
@@ -276,9 +278,12 @@ def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
 # Prepare output
 # -----------------------------
 
+print(f"Building from {content_dir}", flush=True)
+print(f"Preparing output in {dist_dir}", flush=True)
 clear_folder(dist_dir, keep=thumbnails_dir)
 posts_out_dir.mkdir(exist_ok=True)
 
+print("Copying static assets", flush=True)
 shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
 
 # -----------------------------
@@ -288,11 +293,15 @@ shutil.copytree(static_dir, dist_dir, dirs_exist_ok=True)
 posts = []
 used_posters = set()
 
-for folder in sorted(content_dir.iterdir(), reverse=True):
-    if not folder.is_dir():
-        continue
+post_folders = sorted(
+    (folder for folder in content_dir.iterdir() if folder.is_dir()), reverse=True
+)
+post_count = len(post_folders)
+print(f"Found {post_count} post folder(s)", flush=True)
 
+for index, folder in enumerate(post_folders, start=1):
     slug = folder.name
+    print(f"[{index}/{post_count}] Scanning post {slug}", flush=True)
     title = slug
     readme = find_readme(folder)
     content = ""
@@ -334,10 +343,12 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
         if bundle_media:
             media_output = dist_dir / "media" / media_path
             media_output.parent.mkdir(parents=True, exist_ok=True)
+            print(f"  Copying media {media_path} ({size})", flush=True)
             shutil.copy2(path, media_output)
 
         assets.append(asset)
 
+    print(f"  Found {len(assets)} asset(s)", flush=True)
     year = slug[:4]
     month_number = slug[5:7]
     month = month_names.get(month_number, month_number)
@@ -361,6 +372,7 @@ for folder in sorted(content_dir.iterdir(), reverse=True):
 # Link neighboring posts
 # -----------------------------
 
+print("Building post navigation and archive", flush=True)
 # Posts are newest first. The template intentionally places older on the left
 # and newer on the right; preserve that direction when changing navigation.
 for index, post in enumerate(posts):
@@ -386,6 +398,7 @@ about = ""
 about_path = content_dir / "README.md"
 
 if about_path.exists():
+    print(f"Reading about page from {about_path}", flush=True)
     about_text = about_path.read_text(encoding="utf-8")
     about = markdown.markdown(about_text, extensions=["extra"])
 
@@ -394,6 +407,7 @@ if about_path.exists():
 # Write index
 # -----------------------------
 
+print("Rendering index.html", flush=True)
 index_html = index_template.render(
     archive=archive,
     about=about,
@@ -412,7 +426,8 @@ index_output.write_text(prettify(index_html), encoding="utf-8")
 # Write post pages
 # -----------------------------
 
-for post in posts:
+for index, post in enumerate(posts, start=1):
+    print(f"[{index}/{post_count}] Rendering posts/{post['slug']}.html", flush=True)
     html = post_template.render(
         title=post["title"],
         weekday=post["weekday"],
@@ -439,6 +454,7 @@ for post in posts:
 # Done
 # -----------------------------
 
+print("Removing unused thumbnails", flush=True)
 for poster in thumbnails_dir.glob("*.jpg"):
     if poster not in used_posters and poster.is_file():
         poster.unlink(missing_ok=True)
