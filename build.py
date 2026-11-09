@@ -5,6 +5,7 @@ import sys
 from calendar import month_name
 from collections import defaultdict
 from datetime import UTC, date, datetime
+from functools import cache
 from hashlib import sha256
 from os import stat_result
 from pathlib import Path
@@ -98,6 +99,12 @@ readme_names = {"readme.md", "readme.txt"}
 
 month_names = {f"{i:02}": month_name[i] for i in range(1, 13)}
 birthday = date(2005, 10, 18)
+
+# Fit within 640px without upscaling, using the display aspect ratio.
+POSTER_SCALE = (
+    "scale='max(1,min(640,min(640,ih)*dar))':'max(1,min(640,min(ih,640/dar)))'"
+)
+HDR_TRANSFERS = {b"smpte2084", b"arib-std-b67"}
 
 
 # -----------------------------
@@ -211,6 +218,62 @@ def format_file_size(size_bytes: int) -> str:
         size /= 1024
 
 
+@cache
+def hdr_poster_filter() -> str:
+    """Convert PQ or HLG to sRGB with full-range JPEG color values."""
+    filters = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-h", "filter=zscale"],
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
+    if filters.stdout.startswith(b"Filter zscale"):
+        return (
+            f"{POSTER_SCALE},zscale=t=linear:npl=203,format=gbrpf32le,"
+            "tonemap=hable:desat=0,zscale=p=bt709:t=iec61966-2-1:m=bt470bg:r=full,"
+            "format=yuv444p,setsar=1"
+        )
+    # Newer FFmpeg builds can tone-map through scale without libzimg.
+    return (
+        f"{POSTER_SCALE}:out_primaries=bt709:out_transfer=srgb:"
+        "out_color_matrix=bt601:out_range=full:intent=perceptual,"
+        "format=yuv444p,setsar=1"
+    )
+
+
+def poster_filter(path: Path) -> str:
+    """Choose a filter based on the same video stream used for the poster."""
+    try:
+        probe = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "V:0",
+                "-show_entries",
+                "stream=color_transfer",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                str(path),
+            ],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        print(
+            f"Warning: Could not inspect HDR metadata for '{path}': {error}",
+            file=sys.stderr,
+        )
+    else:
+        if probe.returncode == 0 and probe.stdout.strip() in HDR_TRANSFERS:
+            print(f"  Tone mapping HDR poster for {path.relative_to(root)}", flush=True)
+            return hdr_poster_filter()
+
+    return f"{POSTER_SCALE},setsar=1"
+
+
 def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
     """Reuse a poster for an unchanged video or extract its first frame."""
     source_path = path.relative_to(root).as_posix()
@@ -236,12 +299,8 @@ def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
                 "0:V:0",
                 "-frames:v",
                 "1",
-                # Fit within 640px without upscaling, using the display aspect ratio.
                 "-vf",
-                (
-                    "scale='max(1,min(640,min(640,ih)*dar))':"
-                    "'max(1,min(640,min(ih,640/dar)))',setsar=1"
-                ),
+                poster_filter(path),
                 "-c:v",
                 "mjpeg",
                 "-q:v",

@@ -28,13 +28,15 @@ other files are shown as assets.
 
 The build uses FFmpeg to extract the first frame of each video into
 `dist/thumbnails/`. The player displays that JPEG before loading the video.
+HDR video tagged as PQ or HLG is tone mapped to SDR for the poster.
 Builds reuse existing posters for videos with the same path, size, and
 modification time and remove posters for videos absent from the build.
 Delete `dist/thumbnails/` before rebuilding to regenerate all posters.
 
-The Docker image includes FFmpeg. For a local Python build, install `ffmpeg`
-and make sure it is on your PATH. If a poster cannot be generated, the build
-warns and still includes the video.
+The Docker image includes FFmpeg. For a local Python build, put `ffmpeg` and
+`ffprobe` on your PATH. HDR posters use `zscale` and `tonemap` or a newer
+`scale` filter with perceptual tone mapping. If a poster cannot be generated,
+the build warns and still includes the video.
 
 ## open locally
 
