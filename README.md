@@ -8,6 +8,25 @@ simple static blog generator for my journal.
 docker compose up --build
 ```
 
+The build shows warnings as they happen and repeats them in a summary at
+the end.
+
+## journal maintenance
+
+Run the consistency audit on the host before building to apply its suggested
+renames and print each change. The audit leaves conflicting names and nearby
+text references for manual review. Run it without `--rename` for a read-only
+report.
+
+```bash
+python scripts/audit_consistency.py /path/to/journal --rename
+python scripts/check_mp4_durations.py /path/to/journal --faststart
+docker compose up --build
+```
+
+An audit exit status of `1` means there are issues left to review. A local
+`generate.sh` deployment script in the checkout is ignored by Git.
+
 ## content
 
 put posts in `content/` like this:

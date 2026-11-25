@@ -1,10 +1,14 @@
 import argparse
 import re
 from collections import defaultdict
+from ctypes import CDLL, get_errno
 from dataclasses import dataclass, field
 from datetime import date
+from errno import ENOTSUP
+from os import fsencode, strerror
 from pathlib import Path
 from stat import S_ISDIR, S_ISLNK, S_ISREG
+from sys import platform
 from unicodedata import normalize
 from urllib.parse import unquote
 
@@ -112,6 +116,27 @@ def folders_list_is_formatted(lines: list[str], heading: int) -> bool:
     return index > 2 and (index == len(lines) or lines[index] == "")
 
 
+def rename_without_overwrite(source: Path, target: Path) -> None:
+    """Rename files or directories atomically, including if a target appears after scanning."""
+    if platform == "win32":
+        source.rename(target)
+        return
+
+    libc = CDLL(None, use_errno=True)
+    old, new = fsencode(source), fsencode(target)
+    if platform.startswith("linux") and hasattr(libc, "renameat2"):
+        at_fdcwd, rename_noreplace = -100, 1
+        result = libc.renameat2(at_fdcwd, old, at_fdcwd, new, rename_noreplace)
+    elif platform == "darwin":
+        rename_excl = 0x00000004
+        result = libc.renamex_np(old, new, rename_excl)
+    else:
+        raise OSError(ENOTSUP, "exclusive rename is unavailable", str(source))
+    if result != 0:
+        error = get_errno()
+        raise OSError(error, strerror(error), str(source), None, str(target))
+
+
 @dataclass
 class Audit:
     root: Path
@@ -119,6 +144,7 @@ class Audit:
     problems: list[str] = field(default_factory=list)
     style: list[str] = field(default_factory=list)
     renames: dict[Path, str] = field(default_factory=dict)
+    blocked_renames: set[Path] = field(default_factory=set)
     children: dict[Path, list[Path]] = field(default_factory=dict)
     folders: set[Path] = field(default_factory=set)
     files: dict[Path, int] = field(default_factory=dict)
@@ -307,6 +333,7 @@ class Audit:
             for key, sources in proposed.items():
                 names = sources | current.get(key, set())
                 if len(names) > 1:
+                    self.blocked_renames.update(folder / name for name in sources)
                     self.problems.append(
                         f"{self.label(folder)}: proposed renames conflict between "
                         f"{', '.join(map(repr, sorted(names)))}"
@@ -341,6 +368,7 @@ class Audit:
                     if pattern.search(plain) or pattern.search(decoded)
                 ]
                 for path in matched:
+                    self.blocked_renames.add(path)
                     self.references.append(
                         f"{self.label(note)} line {number}: review reference to {self.label(path)}"
                     )
@@ -364,6 +392,27 @@ class Audit:
         self.check_collisions()
         self.progress("Checking nearby text references")
         self.check_references()
+
+    def apply_renames(self) -> tuple[int, list[str]]:
+        renamed = 0
+        failures = []
+        # Rename descendants first so their original paths are still reachable.
+        for path in sorted(self.renames, key=lambda path: (-len(path.parts), path)):
+            if path in self.blocked_renames:
+                continue
+            target = path.with_name(self.renames[path])
+            change = f"{self.label(path)} -> {self.label(target)}"
+            try:
+                mode = path.lstat().st_mode
+                if not (S_ISREG(mode) or S_ISDIR(mode)):
+                    raise ValueError("source is no longer a regular file or directory")
+                rename_without_overwrite(path, target)
+            except (OSError, ValueError) as error:
+                failures.append(f"Could not rename {change}: {error}")
+                continue
+            print(f"Renamed {change}", flush=True)
+            renamed += 1
+        return renamed, failures
 
     def print_report(self) -> None:
         renames = [
@@ -394,7 +443,7 @@ class Audit:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Read-only audit of journal files and folders, skipping originals archives.",
+        description="Audit journal files and folders, skipping originals archives.",
         epilog="Exit status 1 means the audit found problems. Style suggestions alone return 0.",
     )
     parser.add_argument(
@@ -403,6 +452,11 @@ def main() -> int:
         type=Path,
         default=Path.cwd(),
         help="Directory to audit (default: current directory).",
+    )
+    parser.add_argument(
+        "--rename",
+        action="store_true",
+        help="Apply and print proposed renames that have no detected conflicts or text references.",
     )
     parser.add_argument(
         "-v",
@@ -417,6 +471,13 @@ def main() -> int:
 
     audit = Audit(root, verbose=args.verbose)
     audit.run()
+    if args.rename:
+        renamed, failures = audit.apply_renames()
+        if renamed:
+            audit = Audit(root)
+            audit.run()
+            audit.verbose = args.verbose
+        audit.problems.extend(failures)
     audit.print_report()
     return int(bool(audit.problems))
 

@@ -105,11 +105,17 @@ POSTER_SCALE = (
     "scale='max(1,min(640,min(640,ih)*dar))':'max(1,min(640,min(ih,640/dar)))'"
 )
 HDR_TRANSFERS = {b"smpte2084", b"arib-std-b67"}
+build_warnings: list[str] = []
 
 
 # -----------------------------
 # Helpers
 # -----------------------------
+
+
+def warn(message: str) -> None:
+    build_warnings.append(message)
+    print(f"Warning: {message}", file=sys.stderr, flush=True)
 
 
 def prettify(html: str) -> str:
@@ -123,8 +129,8 @@ def asset_kind(path: Path) -> str:
     """Get the asset kind from file extension."""
     suffix = path.suffix.lower()
     if suffix and suffix not in asset_types:
-        print(
-            f"Warning: Unsupported file extension '{suffix}' for '{path.relative_to(root)}'. "
+        warn(
+            f"Unsupported file extension '{suffix}' for '{path.relative_to(root)}'. "
             "Treating it as a generic file asset."
         )
 
@@ -262,10 +268,7 @@ def poster_filter(path: Path) -> str:
             timeout=10,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
-        print(
-            f"Warning: Could not inspect HDR metadata for '{path}': {error}",
-            file=sys.stderr,
-        )
+        warn(f"Could not inspect HDR metadata for '{path}': {error}")
     else:
         if probe.returncode == 0 and probe.stdout.strip() in HDR_TRANSFERS:
             print(f"  Tone mapping HDR poster for {path.relative_to(root)}", flush=True)
@@ -326,10 +329,7 @@ def build_video_poster(path: Path, video_stat: stat_result) -> Path | None:
 
         detail = result.stderr.decode(errors="replace").strip() or "no frame decoded"
 
-    print(
-        f"Warning: Could not generate poster for '{path.relative_to(content_dir)}': {detail}",
-        file=sys.stderr,
-    )
+    warn(f"Could not generate poster for '{path.relative_to(content_dir)}': {detail}")
     return None
 
 
@@ -519,4 +519,7 @@ for poster in thumbnails_dir.glob("*.jpg"):
         poster.unlink(missing_ok=True)
 
 print(f"Wrote {index_output}")
-print(f"Wrote {len(posts)} post(s)")
+print(f"Wrote {len(posts)} post(s)", flush=True)
+print(f"\nBuild warnings ({len(build_warnings)})", flush=True)
+for message in build_warnings:
+    print(f"- {message}", flush=True)
